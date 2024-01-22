@@ -1,58 +1,63 @@
+import logging
+import time
+import pytest
+from selenium.webdriver.support.wait import WebDriverWait
+
 from pages.sbis_page import SbisPage
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
-def test_correct_area(browser):
-    """
-    Проверяет, что на странице Sbis Contacts корректно определен регион и отображается список партнеров.
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
 
-    Args:
-        browser (webdriver): Объект WebDriver для взаимодействия с браузером.
-    """
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+console_handler.setFormatter(formatter)
+
+logger.addHandler(console_handler)
+
+
+@pytest.fixture
+def sbis_page(browser):
     sbis_page = SbisPage(browser)
     sbis_page.open_sbis_contacts()
-
-    if "Калининградская обл." == sbis_page.button_area().text:
-        print("Ошибки нет")
-    else:
-        print("Регион определился неверно")
-
-    if sbis_page.list_of_partners().is_displayed:
-        print("Партнёры определены")
-    else:
-        print("Партнёры не определены")
+    return sbis_page
 
 
-def test_changing_area(browser):
-    """
-    Проверяет, что на странице Sbis Contacts корректно меняется регион и отображаются партнёры Камчатского края.
+def test_correct_area(sbis_page):
+    try:
+        logger.info("Проверка правильности определения области на странице Sbis Contacts.")
+        assert "Калининградская обл." == sbis_page.button_area().text
+        logger.info("Ошибок нет.")
 
-    Args:
-        browser (webdriver): Объект WebDriver для взаимодействия с браузером.
-    """
-    sbis_page = SbisPage(browser)
-    sbis_page.open_sbis_contacts()
+        assert sbis_page.list_of_partners().is_displayed
+        logger.info("Партнеры определены.")
+    except AssertionError as e:
+        logger.error(f"Проверка не удалась: {e}")
+        pytest.fail("Тест неудачен из-за ошибки проверки.")
+
+
+def test_changing_area(sbis_page):
     sbis_page.button_area().click()
     sbis_page.button_area_kamchatka().click()
+    time.sleep(5)
 
-    if sbis_page.list_of_partners().is_displayed:
-        print("Партнёры Камчатского края определены")
-    else:
-        print("Партнёры Камчатского края не определены")
+    try:
+        logger.info("Проверка правильности изменения региона на странице Sbis Contacts.")
+        assert sbis_page.list_of_partners().is_displayed
+        logger.info("Партнеры Камчатского края определены.")
 
-    if 'Камчатский край' == sbis_page.button_area().text:
-        print("В строке 'Выбор региона' указан верный регион")
-    else:
-        print("В строке 'Выбор региона' указан неверный регион")
+        assert 'Камчатский край' == sbis_page.button_area().text
+        logger.info("Правильный регион указан в строке 'Выбор региона'.")
 
-    if 'kamchatskij' in browser.current_url.lower():
-        print("Url определён верно")
-    else:
-        print("Url определён неверно")
+        assert 'kamchatskij' in sbis_page.get_current_url().lower()
+        logger.info("URL определен правильно.")
 
-    if 'Камчатский край' in browser.title:
-        print("title определён верно")
-    else:
-        print("title определён неверно")
+        assert 'СБИС Контакты — Камчатский край' in sbis_page.get_title_sbis().get_attribute('innerText')
+        logger.info("Заголовок определен правильно.")
+    except AssertionError as e:
+        logger.error(f"Проверка не удалась: {e}")
+        pytest.fail("Тест неудачен из-за ошибки проверки.")
 
 
 

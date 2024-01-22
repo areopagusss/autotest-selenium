@@ -9,4 +9,3 @@ def browser():
     chrome_browser = webdriver.Chrome(options=chrome_options)
     chrome_browser.implicitly_wait(10)
     return chrome_browser
-

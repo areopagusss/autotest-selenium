@@ -1,6 +1,8 @@
+import logging
 from pages.base_page import BasePage
 from selenium.webdriver.common.by import By
-
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 block_text_sila_v_ludyah_selector = (By.CSS_SELECTOR,
@@ -10,7 +12,7 @@ button_cookie_closing_selector = (By.CSS_SELECTOR,
                          '[class="tensor_ru-CookieAgreement__close icon-Close ws-flex-shrink-0 ws-flexbox ws-align-items-center"]')
 
 button_more_detailed_selector = (By.CSS_SELECTOR,
-                                 'a[href="/about"][class="tensor_ru-link tensor_ru-Index__link"]')
+                                 '[href="/about"][class="tensor_ru-link tensor_ru-Index__link"]')
 
 picture_1_selector = (By.CSS_SELECTOR, '[alt="Разрабатываем систему СБИС"]')
 picture_2_selector = (By.CSS_SELECTOR, '[alt="Продвигаем сервисы"]')
@@ -32,7 +34,12 @@ class TensorPage(BasePage):
         return self.find(block_text_sila_v_ludyah_selector)
 
     def cookie_closing(self):
-        return self.find(button_cookie_closing_selector).click()
+        cookie_close_button = self.find(button_cookie_closing_selector)
+        if cookie_close_button.is_displayed():
+            cookie_close_button.click()
+            logger.info("Clicked on cookie closing button.")
+        else:
+            logger.warning("Cookie closing button is not displayed.")
 
     def button_more_detailed(self):
         return self.find(button_more_detailed_selector)
